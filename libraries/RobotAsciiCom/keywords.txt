@@ -10,16 +10,12 @@ RobotAsciiCom	KEYWORD1
 
 handleRxByte	KEYWORD2
 handleRxBytes	KEYWORD2
-registerPositionCallback	KEYWORD2
-registerJointAngleCallback	KEYWORD2
-registerGripperCallback	KEYWORD2  
-registerAttachSelectedServosCallback KEYWORD2
-registerWheelSpeedCallback	KEYWORD2  
-registerBatteryVoltageRequestCallback	KEYWORD2    
-registerWheelCurrentRequestCallback	KEYWORD2    
+registerPwmCallback	KEYWORD2  
 registerCustomStringCallback KEYWORD2
+registerBatteryVoltageRequestCallback	KEYWORD2    
+registerCurrentRequestCallback	KEYWORD2    
 prepareBatteryVoltageReply KEYWORD2
-prepareWheelCurrentReply KEYWORD2
+prepareCurrentReply KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
