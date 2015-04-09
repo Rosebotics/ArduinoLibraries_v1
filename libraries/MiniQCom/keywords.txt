@@ -1,0 +1,10 @@
+MiniQCom	KEYWORD1
+sendWheelSpeed	KEYWORD2
+sendBatteryVoltageRequest	KEYWORD2
+sendBatteryVoltageReply		KEYWORD2
+registerWheelSpeedCallback	KEYWORD2
+registerBatteryVoltageRequestCallback	KEYWORD2
+registerBatteryVoltageReplyCallback		KEYWORD2
+handleRxByte	KEYWORD2
+handleRxBytes	KEYWORD2
+
