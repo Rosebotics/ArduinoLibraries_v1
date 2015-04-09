@@ -14,7 +14,7 @@ MiniQCom::MiniQCom(boolean isMaster, byte slaveAddress) {
 }
 
 
-void MiniQCom::sendWheelPwn(byte leftMode, byte rightMode,
+void MiniQCom::sendWheelPwm(byte leftMode, byte rightMode,
 		byte leftDutyCycle, byte rightDutyCycle) {
 	_txMessageBuffer[COMMAND_BYTE] = COMMAND_WHEEL_PWM;
 	_txMessageBuffer[WHEEL_PWM_DIRECTIONS] = (leftMode << 1) | rightMode;

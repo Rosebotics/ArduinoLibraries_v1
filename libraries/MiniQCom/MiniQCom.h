@@ -13,7 +13,7 @@
 #define COMMAND_BYTE 		0
 
 // Commands
-#define COMMAND_WHEEL_SPEED              0
+#define COMMAND_WHEEL_PWM              0
 #define COMMAND_BATTERY_VOLTAGE_REQUEST  1
 #define COMMAND_BATTERY_VOLTAGE_REPLY    2
 
@@ -33,14 +33,13 @@
 #define BATTERY_VOLTAGE_REPLY_MSB 		2
 
 // Constants used in the wheel PWM commands.
-#define WHEEL_PWM_MODE_BRAKE		0
 #define WHEEL_PWM_MODE_FORWARD		1
-#define WHEEL_PWM_MODE_REVERSE      2
+#define WHEEL_PWM_MODE_REVERSE      0
 
 class MiniQCom
 {
   public:
-	MiniQCom();
+	MiniQCom(boolean isMaster, byte slaveAddress);
 	void sendWheelPwm(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle);
 	void sendBatteryVoltageRequest();
 	void sendBatteryVoltageReply(int batteryMillivolts);
@@ -49,6 +48,8 @@ class MiniQCom
     void registerBatteryVoltageReplyCallback(void (* batteryVoltageReplyCallback)(int batteryMillivolts) );	
     void handleRxByte(byte newRxByte);
   private:
+	boolean _isMaster;
+	byte _slaveAddress;
 	byte _txMessageBuffer[MAX_MESSAGE_LENGTH];
 	byte _rxMessageBuffer[MAX_MESSAGE_LENGTH];
 	void _sendMessage(byte messageLength);
