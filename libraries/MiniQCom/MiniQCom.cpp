@@ -3,7 +3,7 @@
 #include "Wire.h"
 
 MiniQCom::MiniQCom(boolean isMaster, byte slaveAddress) {
-	_wheelPwmCallback = NULL;
+	_drivePwmCallback = NULL;
 	_batteryVoltageRequestCallback = NULL;
 	_batteryVoltageReplyCallback = NULL;
 	_lastByteWasStartByte = false;
@@ -14,13 +14,13 @@ MiniQCom::MiniQCom(boolean isMaster, byte slaveAddress) {
 }
 
 
-void MiniQCom::sendWheelPwm(byte leftMode, byte rightMode,
+void MiniQCom::sendDrivePwm(byte leftMode, byte rightMode,
 		byte leftDutyCycle, byte rightDutyCycle) {
-	_txMessageBuffer[COMMAND_BYTE] = COMMAND_WHEEL_PWM;
-	_txMessageBuffer[WHEEL_PWM_DIRECTIONS] = (leftMode << 1) | rightMode;
-	_txMessageBuffer[WHEEL_PWM_LEFT_DUTY_CYCLE] = leftDutyCycle;
-	_txMessageBuffer[WHEEL_PWM_RIGHT_DUTY_CYCLE] = rightDutyCycle;
-	_sendMessage (WHEEL_PWM_MESSAGE_LENGTH);
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_DRIVE_PWM;
+	_txMessageBuffer[DRIVE_PWM_DIRECTIONS] = (leftMode << 1) | rightMode;
+	_txMessageBuffer[DRIVE_PWM_LEFT_DUTY_CYCLE] = leftDutyCycle;
+	_txMessageBuffer[DRIVE_PWM_RIGHT_DUTY_CYCLE] = rightDutyCycle;
+	_sendMessage (DRIVE_PWM_COMMAND_LENGTH);
 }
 
 
@@ -67,10 +67,10 @@ void MiniQCom::_sendByte(byte unescapedbyte) {
 }
 
 
-void MiniQCom::registerWheelPwmCallback(
-		void (*wheelPwmCallback)(byte leftMode, byte rightMode,
+void MiniQCom::registerDrivePwmCallback(
+		void (*drivePwmCallback)(byte leftMode, byte rightMode,
 				byte leftDutyCycle, byte rightDutyCycle)) {
-	_wheelPwmCallback = wheelPwmCallback;
+	_drivePwmCallback = drivePwmCallback;
 }
 
 
@@ -135,12 +135,12 @@ void MiniQCom::handleRxByte(byte newRxByte) {
 
 void MiniQCom::_parseValidMessage() {
 	switch (_rxMessageBuffer[COMMAND_BYTE]) {
-	case COMMAND_WHEEL_PWM:
-		if (_wheelPwmCallback != NULL) {
-			_wheelPwmCallback((_rxMessageBuffer[WHEEL_PWM_DIRECTIONS] >> 1) & 0x01,
-					_rxMessageBuffer[WHEEL_PWM_DIRECTIONS] & 0x01,
-					_rxMessageBuffer[WHEEL_PWM_LEFT_DUTY_CYCLE],
-					_rxMessageBuffer[WHEEL_PWM_RIGHT_DUTY_CYCLE]);
+	case COMMAND_DRIVE_PWM:
+		if (_drivePwmCallback != NULL) {
+			_drivePwmCallback((_rxMessageBuffer[DRIVE_PWM_DIRECTIONS] >> 1) & 0x01,
+					_rxMessageBuffer[DRIVE_PWM_DIRECTIONS] & 0x01,
+					_rxMessageBuffer[DRIVE_PWM_LEFT_DUTY_CYCLE],
+					_rxMessageBuffer[DRIVE_PWM_RIGHT_DUTY_CYCLE]);
 		}
 		break;
 	case COMMAND_BATTERY_VOLTAGE_REQUEST:

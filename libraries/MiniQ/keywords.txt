@@ -2,19 +2,14 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-MiniQCom					KEYWORD1
+MiniQ			KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-sendWheelPwm				KEYWORD2
-sendBatteryVoltageRequest	KEYWORD2
-sendBatteryVoltageReply		KEYWORD2
-registerWheelPwmCallback	KEYWORD2
-registerBatteryVoltageRequestCallback	KEYWORD2
-registerBatteryVoltageReplyCallback		KEYWORD2
-handleRxByte				KEYWORD2
+setWheelPwm			KEYWORD2
+
 
 #######################################
 # Constants (LITERAL1)
