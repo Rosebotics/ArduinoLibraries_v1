@@ -5,7 +5,7 @@ MiniQCom miniQCom(false, 255); // Address is not actually used in library for a 
 
 void setup() {
   Serial.begin(9600);
-  miniQCom.registerWheelPwmCallback(updateWheelPwm);
+  miniQCom.registerDrivePwmCallback(updateDrivePwm);
   
   // I2C communication not used here, just a reference.
   Wire.begin(4);
@@ -13,15 +13,15 @@ void setup() {
   Wire.onRequest(requestEvent);
 }
 
-void updateWheelPwm(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle) {
+void updateDrivePwm(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle) {
   Serial.print("Update wheel pwm - ");
-  if (leftMode) {
+  if (leftIsForward) {
     Serial.print("Left Forward @ ");
   } else {
     Serial.print("Left Reverse @ ");
   }
   Serial.print(leftDutyCycle);
-  if (rightMode) {
+  if (rightIsForward) {
     Serial.print("  Right Forward @ ");
   } else {
     Serial.print("  Right Reverse @ ");
@@ -95,9 +95,9 @@ void runTest(int testNumber) {
 
 void test0() {
   miniQCom.handleRxByte(START_BYTE);
-  miniQCom.handleRxByte(WHEEL_PWM_MESSAGE_LENGTH);
-  miniQCom.handleRxByte(COMMAND_WHEEL_PWM);
-  miniQCom.handleRxByte(3);
+  miniQCom.handleRxByte(DRIVE_PWM_COMMAND_LENGTH);
+  miniQCom.handleRxByte(COMMAND_DRIVE_PWM);
+  miniQCom.handleRxByte(3); // Both forward.
   miniQCom.handleRxByte(100);
   miniQCom.handleRxByte(100);
   // Manually calculate crc 0+3+100+100 = 203

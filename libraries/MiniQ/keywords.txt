@@ -10,7 +10,6 @@ MiniQ			KEYWORD1
 
 setWheelPwm			KEYWORD2
 
-
 #######################################
 # Constants (LITERAL1)
 #######################################

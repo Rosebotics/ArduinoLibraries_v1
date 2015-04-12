@@ -8,12 +8,22 @@ MiniQCom					KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-sendWheelPwm				KEYWORD2
-sendBatteryVoltageRequest	KEYWORD2
-sendBatteryVoltageReply		KEYWORD2
-registerWheelPwmCallback	KEYWORD2
-registerBatteryVoltageRequestCallback	KEYWORD2
-registerBatteryVoltageReplyCallback		KEYWORD2
+sendDrivePwm			    KEYWORD2
+sendDriveSpeedArc			KEYWORD2
+sendSetSensorMask			KEYWORD2
+sendAddToSensorMask			KEYWORD2
+sendRemoveFromSensorMask	KEYWORD2
+sendBuzzerTone				KEYWORD2
+sendLed						KEYWORD2
+sendSendIr					KEYWORD2
+sendIrModuleMode			KEYWORD2
+registerDrivePwmCallback	KEYWORD2
+registerDriveSpeedArc		KEYWORD2
+registerSensorMaskCallback	KEYWORD2
+registerBuzzerToneCallback	KEYWORD2
+registerLedCallback			KEYWORD2
+registerSendIrCallback		KEYWORD2
+registerIrModuleMode		KEYWORD2
 handleRxByte				KEYWORD2
 
 #######################################

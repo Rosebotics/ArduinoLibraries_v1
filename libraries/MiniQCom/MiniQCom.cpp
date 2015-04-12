@@ -2,10 +2,10 @@
 #include "MiniQCom.h"
 #include "Wire.h"
 
-MiniQCom::MiniQCom(boolean isMaster, byte slaveAddress) {
+MiniQCom::MiniQCom(boolean isMaster, byte miniQAddress) {
 	// Just making sure the default state for all variables is cleared out.
 	_isMaster = isMaster;
-	_slaveAddress = slaveAddress;
+	_miniQAddress = miniQAddress;
 	_sensorMask = 0x00000000; // No active sensors.
     // Sensor variables.
     leftMotorEncoder = 0;
@@ -67,20 +67,20 @@ void MiniQCom::sendSetSensorMask(unsigned long sensorMask) {
 
 void MiniQCom::sendAddToSensorMask(unsigned long sensorMaskBitsToAdd) {
 	_txMessageBuffer[COMMAND_BYTE] = COMMAND_ADD_TO_SENSOR_MASK;
-	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMask;
-	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMask >> 8);
-	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMask >> 16);
-	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMask >> 24);
+	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMaskBitsToAdd;
+	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMaskBitsToAdd >> 8);
+	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMaskBitsToAdd >> 16);
+	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMaskBitsToAdd >> 24);
 	_sendMessage(SENSOR_MASK_COMMAND_LENGTH);
 }
 
 
 void MiniQCom::sendRemoveFromSensorMask(unsigned long sensorMaskBitsToRemove) {
 	_txMessageBuffer[COMMAND_BYTE] = COMMAND_REMOVE_FROM_SENSOR_MASK;
-	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMask;
-	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMask >> 8);
-	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMask >> 16);
-	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMask >> 24);
+	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMaskBitsToRemove;
+	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMaskBitsToRemove >> 8);
+	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMaskBitsToRemove >> 16);
+	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMaskBitsToRemove >> 24);
 	_sendMessage(SENSOR_MASK_COMMAND_LENGTH);
 }
 
@@ -125,7 +125,7 @@ void MiniQCom::sendIrModuleMode(irModuleMode_t irModuleMode) {
 void MiniQCom::_sendMessage(byte messageLength) {
 	byte crc = 0;
 	if (_isMaster) {
-	  Wire.beginTransmission(_slaveAddress);
+	  Wire.beginTransmission(_miniQAddress);
 	}
 	Wire.write(START_BYTE);
 	_sendByte(messageLength);
@@ -150,7 +150,7 @@ void MiniQCom::_sendByte(byte unescapedbyte) {
 }
 
 
-void MiniQCom::registerDrivePwmCallback(void (*drivePwmCallback)(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle)) {
+void MiniQCom::registerDrivePwmCallback(void (*drivePwmCallback)(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle)) {
 	_drivePwmCallback = drivePwmCallback;
 }
 
@@ -160,7 +160,7 @@ void MiniQCom::registerDriveSpeedArc(void (*driveSpeedArcCallback)(int speedMmPe
 }
 
 
-void MiniQCom::registerSensorMaskCallback(void (*sensorMaskCallback)(byte setAddOrRemove, unsigned long sensorMask)) {
+void MiniQCom::registerSensorMaskCallback(void (*sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMask)) {
 	_sensorMaskCallback = sensorMaskCallback;
 }
 
@@ -175,7 +175,7 @@ void MiniQCom::registerLedCallback(void (*ledCallback)(byte red, byte green, byt
 }
 
 
-void MiniQCom::registerSendIrCallback(void (*sendIrCallback)(byte byteToSend)) {
+void MiniQCom::registerSendIrCallback(void (*sendIrCallback)(byte byteToSend, unsigned int durationMs)) {
 	_sendIrCallback = sendIrCallback;
 }
 
@@ -231,11 +231,6 @@ void MiniQCom::handleRxByte(byte newRxByte) {
 	_bytesRemainingInMessage--;
 }
 
-if (_batteryVoltageReplyCallback != NULL) {
-	int batteryVoltageMillivolts = _rxMessageBuffer[BATTERY_VOLTAGE_REPLY_MSB];
-	batteryVoltageMillivolts = batteryVoltageMillivolts << 8;
-	batteryVoltageMillivolts += _rxMessageBuffer[BATTERY_VOLTAGE_REPLY_LSB];
-	_batteryVoltageReplyCallback(batteryVoltageMillivolts);
 
 void MiniQCom::_parseValidMessage() {
 	switch (_rxMessageBuffer[COMMAND_BYTE]) {
@@ -311,17 +306,22 @@ void MiniQCom::_parseValidMessage() {
 		break;
 	case COMMAND_LED:
 		if (_ledCallback != NULL) {
-			_ledCallback(_rxMessageBuffer[]);
+			_ledCallback(_rxMessageBuffer[LED_R],
+						 _rxMessageBuffer[LED_G],
+						 _rxMessageBuffer[LED_B]);
 		}
 		break;
 	case COMMAND_SEND_IR:
 		if (_sendIrCallback != NULL) {
-			_sendIrCallback(_rxMessageBuffer[]);
+			unsigned int durationMs = _rxMessageBuffer[SEND_IR_DURATION_MSB];
+			durationMs = durationMs << 8;
+			durationMs += _rxMessageBuffer[SEND_IR_DURATION_LSB];	
+			_sendIrCallback(_rxMessageBuffer[SEND_IR_BYTE], durationMs);
 		}
 		break;
 	case COMMAND_IR_MODULE_MODE:
 		if (_irModuleMode != NULL) {
-			_irModuleMode(_rxMessageBuffer[]);
+			_irModuleMode((irModuleMode_t)_rxMessageBuffer[IR_MODULE_MODE]);
 		}
 		break;
 	default:

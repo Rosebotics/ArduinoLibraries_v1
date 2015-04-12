@@ -91,35 +91,32 @@ typedef enum {
 
 
 // Bytes within commands
-#define DRIVE_PWM_COMMAND_LENGTH		4
-// COMMAND_BYTE is 0
+// COMMAND_BYTE is byte 0 for all messages.
 #define DRIVE_PWM_DIRECTIONS			1
 #define DRIVE_PWM_LEFT_DUTY_CYCLE		2
 #define DRIVE_PWM_RIGHT_DUTY_CYCLE		3
+#define DRIVE_PWM_COMMAND_LENGTH		4
 
-#define DRIVE_SPEED_ARC_COMMAND_LENGTH 	5
-// COMMAND_BYTE is 0
 #define DRIVE_SPEED_ARC_SPEED_LSB		1 // Units of mm/s
 #define DRIVE_SPEED_ARC_SPEED_MSB		2 // Positive is forwards. Negative is reverse.
 #define DRIVE_SPEED_ARC_ARC_LSB			3 // Units of mm
 #define DRIVE_SPEED_ARC_ARC_MSB			4 // Positive arcs left. Negative arcs right.
+#define DRIVE_SPEED_ARC_COMMAND_LENGTH 	5
 
 // Note, these byte definitions are shared by all 3 sensor mask commands.
-#define SENSOR_MASK_COMMAND_LENGTH		5
-// COMMAND_BYTE is 0
 #define SENSOR_MASK_BYTE0				1
 #define SENSOR_MASK_BYTE1				2
 #define SENSOR_MASK_BYTE2				3
 #define SENSOR_MASK_BYTE3				4
+#define SENSOR_MASK_COMMAND_LENGTH		5
 
-#define BUZZER_TONE_COMMAND_LENGTH		7
-// COMMAND_BYTE is 0
 #define BUZZER_TONE_FREQUENCY_LSB		1
 #define BUZZER_TONE_FREQUENCY_MSB		2
 #define BUZZER_TONE_DURATION_BYTE0		3 // Units in milliseconds
 #define BUZZER_TONE_DURATION_BYTE1		4
 #define BUZZER_TONE_DURATION_BYTE2		5
 #define BUZZER_TONE_DURATION_BYTE3		6
+#define BUZZER_TONE_COMMAND_LENGTH		7
 
 #define LED_COMMAND_LENGTH				4
 // COMMAND_BYTE is 0
@@ -156,7 +153,7 @@ class MiniQCom
 	void registerSensorMaskCallback(void (* sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMask) );
 	void registerBuzzerToneCallback(void (* buzzerToneCallback)(unsigned int frequency, unsigned long durationMs) );
 	void registerLedCallback(void (* ledCallback)(byte red, byte green, byte blue) );
-	void registerSendIrCallback(void (* sendIrCallback)(byte byteToSend) );
+	void registerSendIrCallback(void (* sendIrCallback)(byte byteToSend, unsigned int durationMs) );
 	void registerIrModuleMode(void (* irModuleMode)(irModuleMode_t irModuleMode) );
     void handleRxByte(byte newRxByte);
 	
