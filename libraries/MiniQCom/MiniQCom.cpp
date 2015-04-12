@@ -3,39 +3,122 @@
 #include "Wire.h"
 
 MiniQCom::MiniQCom(boolean isMaster, byte slaveAddress) {
+	// Just making sure the default state for all variables is cleared out.
+	_isMaster = isMaster;
+	_slaveAddress = slaveAddress;
+	_sensorMask = 0x00000000; // No active sensors.
+    // Sensor variables.
+    leftMotorEncoder = 0;
+    rightMotorEncoder = 0;
+    farLeftIrLineSensor = 0;
+    midLeftIrLineSensor = 0;
+    centerIrLineSensor = 0;
+    midRightIrLineSensor = 0;
+    farRightIrLineSensor = 0;
+    photoDetectors = 0;
+    irModuleCountForLeftIr = 0;
+    irModuleCountForRightIr = 0;
+    irModuleByte = 0;
+    keyButtons = KEY_BUTTONS_NO_PRESS;
+    batterVoltageTenths = 0;
 	_drivePwmCallback = NULL;
-	_batteryVoltageRequestCallback = NULL;
-	_batteryVoltageReplyCallback = NULL;
+	_driveSpeedArcCallback = NULL;
+	_sensorMaskCallback = NULL;
+	_buzzerToneCallback = NULL;
+	_ledCallback = NULL;
+	_sendIrCallback = NULL;
+	_irModuleMode = NULL;
 	_lastByteWasStartByte = false;
 	_lastByteWasEscapeByte = false;
 	_bytesRemainingInMessage = -1;
-	_isMaster = isMaster;
-	_slaveAddress = slaveAddress;
+	_nextOpenByteInMessageBuffer = 0;
 }
 
 
-void MiniQCom::sendDrivePwm(byte leftMode, byte rightMode,
+void MiniQCom::sendDrivePwm(boolean leftIsForward, boolean rightIsForward,
 		byte leftDutyCycle, byte rightDutyCycle) {
 	_txMessageBuffer[COMMAND_BYTE] = COMMAND_DRIVE_PWM;
-	_txMessageBuffer[DRIVE_PWM_DIRECTIONS] = (leftMode << 1) | rightMode;
+	_txMessageBuffer[DRIVE_PWM_DIRECTIONS] = ((byte)leftIsForward << 1) | (byte)rightIsForward;
 	_txMessageBuffer[DRIVE_PWM_LEFT_DUTY_CYCLE] = leftDutyCycle;
 	_txMessageBuffer[DRIVE_PWM_RIGHT_DUTY_CYCLE] = rightDutyCycle;
-	_sendMessage (DRIVE_PWM_COMMAND_LENGTH);
+	_sendMessage(DRIVE_PWM_COMMAND_LENGTH);
 }
 
 
-void MiniQCom::sendBatteryVoltageRequest() {
-	_txMessageBuffer[COMMAND_BYTE] = COMMAND_BATTERY_VOLTAGE_REQUEST;
-	_sendMessage (BATTERY_VOLTAGE_REQUEST_LENGTH);
+void MiniQCom::sendDriveSpeedArc(int speedMmPerS, int arcMm) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_DRIVE_SPEED_ARC;
+	_txMessageBuffer[DRIVE_SPEED_ARC_SPEED_LSB] = (byte)speedMmPerS;
+	_txMessageBuffer[DRIVE_SPEED_ARC_SPEED_MSB] = (byte)(speedMmPerS >> 8);
+	_txMessageBuffer[DRIVE_SPEED_ARC_ARC_LSB] = (byte)arcMm;
+	_txMessageBuffer[DRIVE_SPEED_ARC_ARC_MSB] = (byte)(arcMm >> 8);
+	_sendMessage(DRIVE_SPEED_ARC_COMMAND_LENGTH);	
 }
 
 
-void MiniQCom::sendBatteryVoltageReply(int batteryMillivolts) {
-	_txMessageBuffer[COMMAND_BYTE] = COMMAND_BATTERY_VOLTAGE_REPLY;
-	_txMessageBuffer[BATTERY_VOLTAGE_REPLY_LSB] = (byte) batteryMillivolts;
-	_txMessageBuffer[BATTERY_VOLTAGE_REPLY_MSB] = (byte)(
-			batteryMillivolts >> 8);
-	_sendMessage (BATTERY_VOLTAGE_REPLY_LENGTH);
+void MiniQCom::sendSetSensorMask(unsigned long sensorMask) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_SET_SENSOR_MASK;
+	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMask;
+	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMask >> 8);
+	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMask >> 16);
+	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMask >> 24);
+	_sendMessage(SENSOR_MASK_COMMAND_LENGTH);
+}
+
+
+void MiniQCom::sendAddToSensorMask(unsigned long sensorMaskBitsToAdd) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_ADD_TO_SENSOR_MASK;
+	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMask;
+	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMask >> 8);
+	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMask >> 16);
+	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMask >> 24);
+	_sendMessage(SENSOR_MASK_COMMAND_LENGTH);
+}
+
+
+void MiniQCom::sendRemoveFromSensorMask(unsigned long sensorMaskBitsToRemove) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_REMOVE_FROM_SENSOR_MASK;
+	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMask;
+	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMask >> 8);
+	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMask >> 16);
+	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMask >> 24);
+	_sendMessage(SENSOR_MASK_COMMAND_LENGTH);
+}
+
+
+void MiniQCom::sendBuzzerTone(unsigned int frequency, unsigned long durationMs) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_BUZZER_TONE;
+	_txMessageBuffer[BUZZER_TONE_FREQUENCY_LSB] = (byte)frequency;
+	_txMessageBuffer[BUZZER_TONE_FREQUENCY_MSB] = (byte)(frequency >> 8);
+	_txMessageBuffer[BUZZER_TONE_DURATION_BYTE0] = (byte)durationMs;
+	_txMessageBuffer[BUZZER_TONE_DURATION_BYTE1] = (byte)(durationMs >> 8);
+	_txMessageBuffer[BUZZER_TONE_DURATION_BYTE2] = (byte)(durationMs >> 16);
+	_txMessageBuffer[BUZZER_TONE_DURATION_BYTE3] = (byte)(durationMs >> 24);
+	_sendMessage(BUZZER_TONE_COMMAND_LENGTH);
+}
+
+
+void MiniQCom::sendLed(byte red, byte green, byte blue) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_LED;
+	_txMessageBuffer[LED_R] = red;
+	_txMessageBuffer[LED_G] = green;
+	_txMessageBuffer[LED_B] = blue;
+	_sendMessage(LED_COMMAND_LENGTH);	
+}
+
+
+void MiniQCom::sendSendIr(byte byteToSend, unsigned int durationMs) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_SEND_IR;
+	_txMessageBuffer[SEND_IR_BYTE] = byteToSend;
+	_txMessageBuffer[SEND_IR_DURATION_LSB] = (byte)durationMs;
+	_txMessageBuffer[SEND_IR_DURATION_MSB] = (byte)(durationMs >> 8);
+	_sendMessage(SEND_IR_COMMAND_LENGTH);
+}
+
+
+void MiniQCom::sendIrModuleMode(irModuleMode_t irModuleMode) {
+	_txMessageBuffer[COMMAND_BYTE] = COMMAND_IR_MODULE_MODE;
+	_txMessageBuffer[IR_MODULE_MODE] = (byte)irModuleMode;  // Already is a byte.
+	_sendMessage(IR_MODULE_MODE_COMMAND_LENGTH);
 }
 
 
@@ -67,22 +150,38 @@ void MiniQCom::_sendByte(byte unescapedbyte) {
 }
 
 
-void MiniQCom::registerDrivePwmCallback(
-		void (*drivePwmCallback)(byte leftMode, byte rightMode,
-				byte leftDutyCycle, byte rightDutyCycle)) {
+void MiniQCom::registerDrivePwmCallback(void (*drivePwmCallback)(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle)) {
 	_drivePwmCallback = drivePwmCallback;
 }
 
 
-void MiniQCom::registerBatteryVoltageRequestCallback(
-void (*batteryVoltageRequestCallback)(void)) {
-	_batteryVoltageRequestCallback = batteryVoltageRequestCallback;
+void MiniQCom::registerDriveSpeedArc(void (*driveSpeedArcCallback)(int speedMmPerS, int arcMm)) {
+	_driveSpeedArcCallback = driveSpeedArcCallback;
 }
 
 
-void MiniQCom::registerBatteryVoltageReplyCallback(
-		void (*batteryVoltageReplyCallback)(int batteryMillivolts)) {
-	_batteryVoltageReplyCallback = batteryVoltageReplyCallback;
+void MiniQCom::registerSensorMaskCallback(void (*sensorMaskCallback)(byte setAddOrRemove, unsigned long sensorMask)) {
+	_sensorMaskCallback = sensorMaskCallback;
+}
+
+
+void MiniQCom::registerBuzzerToneCallback(void (*buzzerToneCallback)(unsigned int frequency, unsigned long durationMs)) {
+	_buzzerToneCallback = buzzerToneCallback;
+}
+
+
+void MiniQCom::registerLedCallback(void (*ledCallback)(byte red, byte green, byte blue)) {
+	_ledCallback = ledCallback;
+}
+
+
+void MiniQCom::registerSendIrCallback(void (*sendIrCallback)(byte byteToSend)) {
+	_sendIrCallback = sendIrCallback;
+}
+
+
+void MiniQCom::registerIrModuleMode(void (*irModuleMode)(irModuleMode_t irModuleMode)) {
+	_irModuleMode = irModuleMode;
 }
 
 
@@ -132,6 +231,11 @@ void MiniQCom::handleRxByte(byte newRxByte) {
 	_bytesRemainingInMessage--;
 }
 
+if (_batteryVoltageReplyCallback != NULL) {
+	int batteryVoltageMillivolts = _rxMessageBuffer[BATTERY_VOLTAGE_REPLY_MSB];
+	batteryVoltageMillivolts = batteryVoltageMillivolts << 8;
+	batteryVoltageMillivolts += _rxMessageBuffer[BATTERY_VOLTAGE_REPLY_LSB];
+	_batteryVoltageReplyCallback(batteryVoltageMillivolts);
 
 void MiniQCom::_parseValidMessage() {
 	switch (_rxMessageBuffer[COMMAND_BYTE]) {
@@ -143,19 +247,81 @@ void MiniQCom::_parseValidMessage() {
 					_rxMessageBuffer[DRIVE_PWM_RIGHT_DUTY_CYCLE]);
 		}
 		break;
-	case COMMAND_BATTERY_VOLTAGE_REQUEST:
-		if (_batteryVoltageRequestCallback != NULL) {
-			_batteryVoltageRequestCallback();
+	case COMMAND_DRIVE_SPEED_ARC:
+		if (_driveSpeedArcCallback != NULL) {
+			int speedMmPerS = _rxMessageBuffer[DRIVE_SPEED_ARC_SPEED_MSB];
+			speedMmPerS = speedMmPerS << 8;
+			speedMmPerS += _rxMessageBuffer[DRIVE_SPEED_ARC_SPEED_LSB];	
+			int arcMm = _rxMessageBuffer[DRIVE_SPEED_ARC_ARC_MSB];
+			arcMm = arcMm << 8;
+			arcMm += _rxMessageBuffer[DRIVE_SPEED_ARC_ARC_LSB];
+			_driveSpeedArcCallback(speedMmPerS, arcMm);
 		}
 		break;
-	case COMMAND_BATTERY_VOLTAGE_REPLY:
-		if (_batteryVoltageReplyCallback != NULL) {
-			int batteryVoltageMillivolts =
-					_rxMessageBuffer[BATTERY_VOLTAGE_REPLY_MSB];
-			batteryVoltageMillivolts = batteryVoltageMillivolts << 8;
-			batteryVoltageMillivolts +=
-					_rxMessageBuffer[BATTERY_VOLTAGE_REPLY_LSB];
-			_batteryVoltageReplyCallback(batteryVoltageMillivolts);
+	case COMMAND_SET_SENSOR_MASK:
+		if (_sensorMaskCallback != NULL) {
+			unsigned long sensorMask = _rxMessageBuffer[SENSOR_MASK_BYTE3];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE2];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			_sensorMaskCallback(SENSOR_MASK_SET, sensorMask);
+		}
+		break;
+	case COMMAND_ADD_TO_SENSOR_MASK:
+		if (_sensorMaskCallback != NULL) {
+			unsigned long sensorMask = _rxMessageBuffer[SENSOR_MASK_BYTE3];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE2];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			_sensorMaskCallback(SENSOR_MASK_ADD, sensorMask);
+		}
+		break;
+	case COMMAND_REMOVE_FROM_SENSOR_MASK:
+		if (_sensorMaskCallback != NULL) {
+			unsigned long sensorMask = _rxMessageBuffer[SENSOR_MASK_BYTE3];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE2];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
+			sensorMask = sensorMask << 8;
+			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			_sensorMaskCallback(SENSOR_MASK_REMOVE, sensorMask);
+		}
+		break;
+	case COMMAND_BUZZER_TONE:
+		if (_buzzerToneCallback != NULL) {
+			unsigned int frequency = _rxMessageBuffer[BUZZER_TONE_FREQUENCY_MSB];
+			frequency = frequency << 8;
+			frequency += _rxMessageBuffer[BUZZER_TONE_FREQUENCY_LSB];	
+			unsigned long durationMs = _rxMessageBuffer[BUZZER_TONE_DURATION_BYTE3];
+			durationMs = durationMs << 8;
+			durationMs += _rxMessageBuffer[BUZZER_TONE_DURATION_BYTE2];
+			durationMs = durationMs << 8;
+			durationMs += _rxMessageBuffer[BUZZER_TONE_DURATION_BYTE1];
+			durationMs = durationMs << 8;
+			durationMs += _rxMessageBuffer[BUZZER_TONE_DURATION_BYTE0];
+			_buzzerToneCallback(frequency, durationMs);
+		}
+		break;
+	case COMMAND_LED:
+		if (_ledCallback != NULL) {
+			_ledCallback(_rxMessageBuffer[]);
+		}
+		break;
+	case COMMAND_SEND_IR:
+		if (_sendIrCallback != NULL) {
+			_sendIrCallback(_rxMessageBuffer[]);
+		}
+		break;
+	case COMMAND_IR_MODULE_MODE:
+		if (_irModuleMode != NULL) {
+			_irModuleMode(_rxMessageBuffer[]);
 		}
 		break;
 	default:

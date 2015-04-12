@@ -3,6 +3,25 @@
 
 #include "Arduino.h"
 
+typedef enum {
+	KEY_BUTTONS_NO_PRESS,
+	KEY_BUTTONS_KEY_1,
+	KEY_BUTTONS_KEY_2,
+	KEY_BUTTONS_KEY_3
+} keyButtons_t;
+
+typedef enum {
+	IR_MODULE_MODE_OFF,
+	IR_MODULE_MODE_COUNT,
+	IR_MODULE_MODE_BYTE
+} irModuleMode_t;
+
+typedef enum {
+	SENSOR_MASK_SET,
+	SENSOR_MASK_ADD,
+	SENSOR_MASK_REMOVE,
+} sensorMaskSetAddOrRemove_t;
+
 // Readings from the MiniQ first:
 // Note there are 32 possible sensor response messages.
 // Sensor message format DataBit9 DataBit8 x ID4 ID3 ID2 ID1 ID0
@@ -14,11 +33,11 @@
 #define CENTER_IR_LINE_SENSOR		4
 #define MID_RIGHT_IR_LINE_SENSOR	5
 #define FAR_RIGHT_IR_LINE_SENSOR	6
-#define PHOTO_DETECTOR_BJTS			7
-#define CENTER_IR_MODULE_COUNT		8
-#define CENTER_IR_MODULE_BYTE		9
+#define PHOTO_DETECTORS				7
+#define IR_MODULE_COUNT				8
+#define IR_MODULE_BYTE				9
 #define KEY_BUTTONS				   10
-#define BATTERY_VOLTAGE			   11
+#define BATTERY_VOLTAGE_TENTHS	   11
 // Note, Accelerometer uses I2C.
 
 // Sensorbits (which bit in the sensor mask means you are on)
@@ -29,11 +48,11 @@
 #define BIT_CENTER_IR_LINE_SENSOR		0x00000010
 #define BIT_MID_RIGHT_IR_LINE_SENSOR	0x00000020
 #define BIT_FAR_RIGHT_IR_LINE_SENSOR	0x00000040
-#define BIT_PHOTO_DETECTOR_BJTS			0x00000080
-#define BIT_CENTER_IR_MODULE_COUNT		0x00000100
-#define BIT_CENTER_IR_MODULE_BYTE		0x00000200
+#define BIT_PHOTO_DETECTORS				0x00000080
+#define BIT_IR_MODULE_COUNT				0x00000100
+#define BIT_IR_MODULE_BYTE				0x00000200
 #define BIT_KEY_BUTTONS					0x00000400
-#define BIT_BATTERY_VOLTAGE				0x00000800
+#define BIT_BATTERY_VOLTAGE_TENTHS		0x00000800
 
 // Sensor message length (when sent how many additional data bytes are needed)
 #define MSG_LENGTH_LEFT_MOTOR_ENCODER			4 // BYTE0 first
@@ -43,11 +62,11 @@
 #define MSG_LENGTH_CENTER_IR_LINE_SENSOR		1 // Uses DataBit9 and DataBit8
 #define MSG_LENGTH_MID_RIGHT_IR_LINE_SENSOR		1 // Uses DataBit9 and DataBit8
 #define MSG_LENGTH_FAR_RIGHT_IR_LINE_SENSOR		1 // Uses DataBit9 and DataBit8
-#define MSG_LENGTH_PHOTO_DETECTOR_BJTS			1 // Uses DataBit9 and DataBit8
-#define MSG_LENGTH_CENTER_IR_MODULE_COUNT		1 // Count seen during 15 pulse test (bits 7-4 left count, bits 3-0 right count)
-#define MSG_LENGTH_CENTER_IR_MODULE_BYTE		1 // Last byte received from IR control (with 1 second).
+#define MSG_LENGTH_PHOTO_DETECTORS				1 // Uses DataBit9 and DataBit8
+#define MSG_LENGTH_IR_MODULE_COUNT				1 // Count seen during 15 pulse test (bits 7-4 left count, bits 3-0 right count)
+#define MSG_LENGTH_IR_MODULE_BYTE				1 // Last byte received from IR control (with 1 second).
 #define MSG_LENGTH_KEY_BUTTONS					0 // DataBit9 and DataBit8 only
-#define MSG_LENGTH_BATTERY_VOLTAGE				1 // Units are in tenths of a volt
+#define MSG_LENGTH_BATTERY_VOLTAGE_TENTHS		1 // Units are in tenths of a volt
 
 
 // Special protocol bytes
@@ -77,9 +96,6 @@
 #define DRIVE_PWM_DIRECTIONS			1
 #define DRIVE_PWM_LEFT_DUTY_CYCLE		2
 #define DRIVE_PWM_RIGHT_DUTY_CYCLE		3
-// Constants used within the drive pwm command.
-#define DRIVE_PWM_DIRECTION_FORWARD			0
-#define DRIVE_PWM_DIRECTION_REVERSE      	1
 
 #define DRIVE_SPEED_ARC_COMMAND_LENGTH 	5
 // COMMAND_BYTE is 0
@@ -96,7 +112,7 @@
 #define SENSOR_MASK_BYTE2				3
 #define SENSOR_MASK_BYTE3				4
 
-#define BUZZER_TONE_COMMAND_LENGTH		5
+#define BUZZER_TONE_COMMAND_LENGTH		7
 // COMMAND_BYTE is 0
 #define BUZZER_TONE_FREQUENCY_LSB		1
 #define BUZZER_TONE_FREQUENCY_MSB		2
@@ -119,34 +135,60 @@
 
 #define IR_MODULE_MODE_COMMAND_LENGTH	2
 // COMMAND_BYTE is 0
-#define IR_MODULE_MODE					1
-// Constants used within the IR_MODULE_MODE command.
-#define IR_MODULE_MODE_OFF				0
-#define IR_MODULE_MODE_COUNT			1 // Attempting to find obstacles by counting number of edges from 20 pulses
-#define IR_MODULE_MODE_BYTE				2 // Attempting to receive an IR byte from a remote or another robot.
+#define IR_MODULE_MODE					1 // see the irModuleMode_t enum
 
 
 class MiniQCom
 {
   public:
-	MiniQCom(boolean isMaster, byte slaveAddress);
-	void sendDrivePwm(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle);
-	void sendBatteryVoltageRequest();
-	void sendBatteryVoltageReply(int batteryMillivolts);
-	void registerDrivePwmCallback(void (* drivePwmCallback)(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle) );
-    void registerBatteryVoltageRequestCallback(void (* batteryVoltageRequestCallback)(void) );
-    void registerBatteryVoltageReplyCallback(void (* batteryVoltageReplyCallback)(int batteryMillivolts) );	
+	MiniQCom(boolean isMaster, byte miniQAddress);
+	void sendDrivePwm(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle);
+	void sendDriveSpeedArc(int speedMmPerS, int arcMm);
+	void sendSetSensorMask(unsigned long sensorMask);
+	void sendAddToSensorMask(unsigned long sensorMaskBitsToAdd);
+	void sendRemoveFromSensorMask(unsigned long sensorMaskBitsToRemove);
+	void sendBuzzerTone(unsigned int frequency, unsigned long durationMs);
+	void sendLed(byte red, byte green, byte blue);
+	void sendSendIr(byte byteToSend, unsigned int durationMs);
+	void sendIrModuleMode(irModuleMode_t irModuleMode);
+	void registerDrivePwmCallback(void (* drivePwmCallback)(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle) );
+	void registerDriveSpeedArc(void (* driveSpeedArcCallback)(int speedMmPerS, int arcMm) );
+	void registerSensorMaskCallback(void (* sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMask) );
+	void registerBuzzerToneCallback(void (* buzzerToneCallback)(unsigned int frequency, unsigned long durationMs) );
+	void registerLedCallback(void (* ledCallback)(byte red, byte green, byte blue) );
+	void registerSendIrCallback(void (* sendIrCallback)(byte byteToSend) );
+	void registerIrModuleMode(void (* irModuleMode)(irModuleMode_t irModuleMode) );
     void handleRxByte(byte newRxByte);
+	
+    // Sensor variables.
+    long leftMotorEncoder;
+    long rightMotorEncoder;
+    int farLeftIrLineSensor;
+    int midLeftIrLineSensor;
+    int centerIrLineSensor;
+    int midRightIrLineSensor;
+    int farRightIrLineSensor;
+    int photoDetectors;
+    byte irModuleCountForLeftIr;
+    byte irModuleCountForRightIr;
+    byte irModuleByte;
+    keyButtons_t keyButtons;
+    byte batterVoltageTenths;
   private:
 	boolean _isMaster;
-	byte _slaveAddress;
+	byte _miniQAddress;
+	unsigned long _sensorMask;
 	byte _txMessageBuffer[MAX_MESSAGE_LENGTH];
 	byte _rxMessageBuffer[MAX_MESSAGE_LENGTH];
 	void _sendMessage(byte messageLength);
 	void _sendByte(byte unescapedbyte);
-	void (* _drivePwmCallback)(byte leftMode, byte rightMode, byte leftDutyCycle, byte rightDutyCycle);
-    void (* _batteryVoltageRequestCallback)(void);
-    void (* _batteryVoltageReplyCallback)(int batteryMillivolts);
+	void (* _drivePwmCallback)(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle);
+	void (* _driveSpeedArcCallback)(int speedMmPerS, int arcMm);
+	void (* _sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMask);
+	void (* _buzzerToneCallback)(unsigned int frequency, unsigned long durationMs);
+	void (* _ledCallback)(byte red, byte green, byte blue);
+	void (* _sendIrCallback)(byte byteToSend, unsigned int durationMs);
+	void (* _irModuleMode)(irModuleMode_t irModuleMode);
     boolean _lastByteWasStartByte;
 	boolean _lastByteWasEscapeByte;
 	int _bytesRemainingInMessage;
