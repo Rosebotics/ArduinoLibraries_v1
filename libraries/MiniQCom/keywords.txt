@@ -3,6 +3,9 @@
 #######################################
 
 MiniQCom					KEYWORD1
+keyButtons_t				KEYWORD1
+irModuleMode_t				KEYWORD1
+sensorMaskSetAddOrRemove_t	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -30,4 +33,13 @@ handleRxByte				KEYWORD2
 # Constants (LITERAL1)
 #######################################
 
-
+KEY_BUTTONS_NO_PRESS	LITERAL1
+KEY_BUTTONS_KEY_1		LITERAL1
+KEY_BUTTONS_KEY_2		LITERAL1
+KEY_BUTTONS_KEY_3		LITERAL1
+IR_MODULE_MODE_OFF		LITERAL1
+IR_MODULE_MODE_COUNT	LITERAL1
+IR_MODULE_MODE_BYTE		LITERAL1
+SENSOR_MASK_SET			LITERAL1
+SENSOR_MASK_ADD			LITERAL1
+SENSOR_MASK_REMOVE		LITERAL1

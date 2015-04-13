@@ -155,7 +155,7 @@ void MiniQCom::registerDrivePwmCallback(void (*drivePwmCallback)(boolean leftIsF
 }
 
 
-void MiniQCom::registerDriveSpeedArc(void (*driveSpeedArcCallback)(int speedMmPerS, int arcMm)) {
+void MiniQCom::registerDriveSpeedArcCallback(void (*driveSpeedArcCallback)(int speedMmPerS, int arcMm)) {
 	_driveSpeedArcCallback = driveSpeedArcCallback;
 }
 
@@ -262,6 +262,7 @@ void MiniQCom::_parseValidMessage() {
 			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
 			sensorMask = sensorMask << 8;
 			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			_sensorMask = sensorMask;  // Set the mask.
 			_sensorMaskCallback(SENSOR_MASK_SET, sensorMask);
 		}
 		break;
@@ -274,6 +275,7 @@ void MiniQCom::_parseValidMessage() {
 			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
 			sensorMask = sensorMask << 8;
 			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			_sensorMask |= sensorMask; // OR the two masks.
 			_sensorMaskCallback(SENSOR_MASK_ADD, sensorMask);
 		}
 		break;
@@ -286,6 +288,7 @@ void MiniQCom::_parseValidMessage() {
 			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
 			sensorMask = sensorMask << 8;
 			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			_sensorMask &= ~sensorMask; // Remove only certain sensors.
 			_sensorMaskCallback(SENSOR_MASK_REMOVE, sensorMask);
 		}
 		break;

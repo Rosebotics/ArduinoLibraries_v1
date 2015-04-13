@@ -41,18 +41,18 @@ typedef enum {
 // Note, Accelerometer uses I2C.
 
 // Sensorbits (which bit in the sensor mask means you are on)
-#define BIT_LEFT_MOTOR_ENCODER			0x00000001
-#define BIT_RIGHT_MOTOR_ENCODER			0x00000002
-#define BIT_FAR_LEFT_IR_LINE_SENSOR		0x00000004
-#define BIT_MID_LEFT_IR_LINE_SENSOR		0x00000008
-#define BIT_CENTER_IR_LINE_SENSOR		0x00000010
-#define BIT_MID_RIGHT_IR_LINE_SENSOR	0x00000020
-#define BIT_FAR_RIGHT_IR_LINE_SENSOR	0x00000040
-#define BIT_PHOTO_DETECTORS				0x00000080
-#define BIT_IR_MODULE_COUNT				0x00000100
-#define BIT_IR_MODULE_BYTE				0x00000200
-#define BIT_KEY_BUTTONS					0x00000400
-#define BIT_BATTERY_VOLTAGE_TENTHS		0x00000800
+#define BIT_LEFT_MOTOR_ENCODER			0x00000001L
+#define BIT_RIGHT_MOTOR_ENCODER			0x00000002L
+#define BIT_FAR_LEFT_IR_LINE_SENSOR		0x00000004L
+#define BIT_MID_LEFT_IR_LINE_SENSOR		0x00000008L
+#define BIT_CENTER_IR_LINE_SENSOR		0x00000010L
+#define BIT_MID_RIGHT_IR_LINE_SENSOR	0x00000020L
+#define BIT_FAR_RIGHT_IR_LINE_SENSOR	0x00000040L
+#define BIT_PHOTO_DETECTORS				0x00000080L
+#define BIT_IR_MODULE_COUNT				0x00000100L
+#define BIT_IR_MODULE_BYTE				0x00000200L
+#define BIT_KEY_BUTTONS					0x00000400L
+#define BIT_BATTERY_VOLTAGE_TENTHS		0x00000800L
 
 // Sensor message length (when sent how many additional data bytes are needed)
 #define MSG_LENGTH_LEFT_MOTOR_ENCODER			4 // BYTE0 first
@@ -149,7 +149,7 @@ class MiniQCom
 	void sendSendIr(byte byteToSend, unsigned int durationMs);
 	void sendIrModuleMode(irModuleMode_t irModuleMode);
 	void registerDrivePwmCallback(void (* drivePwmCallback)(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle) );
-	void registerDriveSpeedArc(void (* driveSpeedArcCallback)(int speedMmPerS, int arcMm) );
+	void registerDriveSpeedArcCallback(void (* driveSpeedArcCallback)(int speedMmPerS, int arcMm) );
 	void registerSensorMaskCallback(void (* sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMask) );
 	void registerBuzzerToneCallback(void (* buzzerToneCallback)(unsigned int frequency, unsigned long durationMs) );
 	void registerLedCallback(void (* ledCallback)(byte red, byte green, byte blue) );
