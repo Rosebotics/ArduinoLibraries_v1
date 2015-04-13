@@ -8,7 +8,7 @@ MiniQ			KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-setWheelPwm			KEYWORD2
+setDrivePwm			KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

@@ -12,6 +12,7 @@ libraries/Bridge
 libraries/Esplora
 libraries/Ethernet
 libraries/Firmata
+libraries/GolfBallStand
 libraries/GSM
 libraries/LiquidCrystal
 libraries/Robot_Control
