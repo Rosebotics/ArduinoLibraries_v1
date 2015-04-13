@@ -33,3 +33,5 @@ libraries/WildThumperCom
 reference
 tools
 
+!libraries/MiniQCom/examples/
+!libraries/MiniQ/examples/

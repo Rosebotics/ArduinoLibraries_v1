@@ -6,7 +6,7 @@ MiniQCom::MiniQCom(boolean isMaster, byte miniQAddress) {
 	// Just making sure the default state for all variables is cleared out.
 	_isMaster = isMaster;
 	_miniQAddress = miniQAddress;
-	_sensorMask = 0x00000000; // No active sensors.
+	sensorMask = 0x00000000; // No active sensors (32 possible sensor reading available).
     // Sensor variables.
     leftMotorEncoder = 0;
     rightMotorEncoder = 0;
@@ -55,12 +55,12 @@ void MiniQCom::sendDriveSpeedArc(int speedMmPerS, int arcMm) {
 }
 
 
-void MiniQCom::sendSetSensorMask(unsigned long sensorMask) {
+void MiniQCom::sendSetSensorMask(unsigned long newSensorMask) {
 	_txMessageBuffer[COMMAND_BYTE] = COMMAND_SET_SENSOR_MASK;
-	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)sensorMask;
-	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(sensorMask >> 8);
-	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(sensorMask >> 16);
-	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(sensorMask >> 24);
+	_txMessageBuffer[SENSOR_MASK_BYTE0] = (byte)newSensorMask;
+	_txMessageBuffer[SENSOR_MASK_BYTE1] = (byte)(newSensorMask >> 8);
+	_txMessageBuffer[SENSOR_MASK_BYTE2] = (byte)(newSensorMask >> 16);
+	_txMessageBuffer[SENSOR_MASK_BYTE3] = (byte)(newSensorMask >> 24);
 	_sendMessage(SENSOR_MASK_COMMAND_LENGTH);
 }
 
@@ -160,7 +160,7 @@ void MiniQCom::registerDriveSpeedArcCallback(void (*driveSpeedArcCallback)(int s
 }
 
 
-void MiniQCom::registerSensorMaskCallback(void (*sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMask)) {
+void MiniQCom::registerSensorMaskCallback(void (*sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMaskParameter)) {
 	_sensorMaskCallback = sensorMaskCallback;
 }
 
@@ -255,41 +255,41 @@ void MiniQCom::_parseValidMessage() {
 		break;
 	case COMMAND_SET_SENSOR_MASK:
 		if (_sensorMaskCallback != NULL) {
-			unsigned long sensorMask = _rxMessageBuffer[SENSOR_MASK_BYTE3];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE2];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
-			_sensorMask = sensorMask;  // Set the mask.
-			_sensorMaskCallback(SENSOR_MASK_SET, sensorMask);
+			unsigned long sensorMaskParameter = _rxMessageBuffer[SENSOR_MASK_BYTE3];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE2];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE1];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			sensorMask = sensorMaskParameter;  // Set the mask.
+			_sensorMaskCallback(SENSOR_MASK_SET, sensorMaskParameter);
 		}
 		break;
 	case COMMAND_ADD_TO_SENSOR_MASK:
 		if (_sensorMaskCallback != NULL) {
-			unsigned long sensorMask = _rxMessageBuffer[SENSOR_MASK_BYTE3];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE2];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
-			_sensorMask |= sensorMask; // OR the two masks.
-			_sensorMaskCallback(SENSOR_MASK_ADD, sensorMask);
+			unsigned long sensorMaskParameter = _rxMessageBuffer[SENSOR_MASK_BYTE3];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE2];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE1];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			sensorMask |= sensorMaskParameter; // OR the two masks.
+			_sensorMaskCallback(SENSOR_MASK_ADD, sensorMaskParameter);
 		}
 		break;
 	case COMMAND_REMOVE_FROM_SENSOR_MASK:
 		if (_sensorMaskCallback != NULL) {
-			unsigned long sensorMask = _rxMessageBuffer[SENSOR_MASK_BYTE3];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE2];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE1];
-			sensorMask = sensorMask << 8;
-			sensorMask += _rxMessageBuffer[SENSOR_MASK_BYTE0];
-			_sensorMask &= ~sensorMask; // Remove only certain sensors.
-			_sensorMaskCallback(SENSOR_MASK_REMOVE, sensorMask);
+			unsigned long sensorMaskParameter = _rxMessageBuffer[SENSOR_MASK_BYTE3];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE2];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE1];
+			sensorMaskParameter = sensorMaskParameter << 8;
+			sensorMaskParameter += _rxMessageBuffer[SENSOR_MASK_BYTE0];
+			sensorMask &= ~sensorMaskParameter; // Remove only certain sensors.
+			_sensorMaskCallback(SENSOR_MASK_REMOVE, sensorMaskParameter);
 		}
 		break;
 	case COMMAND_BUZZER_TONE:
