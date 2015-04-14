@@ -9,6 +9,7 @@ libraries/ArmServos
 libraries/ArmServosSpeedControlled
 libraries/Audio
 libraries/Bridge
+libraries/EEPROM
 libraries/Esplora
 libraries/Ethernet
 libraries/Firmata
@@ -22,6 +23,8 @@ libraries/RobotIRremote
 libraries/Scheduler
 libraries/SD
 libraries/Servo
+libraries/SPI
+libraries/SoftwareSerial
 libraries/SpacebrewYun
 libraries/Stepper
 libraries/Temboo
