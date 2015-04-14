@@ -35,6 +35,7 @@ void MiniQ::begin() {
 	rgb_light.show(); // Initialize all the pixels to 'off'.	
 }
 
+
 void MiniQ::setDrivePwm(boolean leftIsForward, boolean rightIsForward,
 		byte leftDutyCycle, byte rightDutyCycle) {
 	if (leftIsForward) {
@@ -51,26 +52,37 @@ void MiniQ::setDrivePwm(boolean leftIsForward, boolean rightIsForward,
 	analogWrite(PIN_RIGHT_MOTOR_ENABLE_PWM, rightDutyCycle);
 }
 
+
 void MiniQ::setDriveSpeedArc(int speedMmPerS, int arcMm) {
 	// TODO: Implement.
 }
+
 
 void MiniQ::setSensorMask(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long newSensorMask) {
 	// Probably won't need this method, but a good placeholder.
 }
 
+
 void MiniQ::setBuzzerTone(unsigned int frequency, unsigned long durationMs) {
-	tone(PIN_BUZZER, frequency, durationMs);
+	if (frequency == 0) {
+		noTone(PIN_BUZZER);
+	} else {
+		tone(PIN_BUZZER, frequency, durationMs);
+	}
+	delay(durationMs);  // TODO: Reimplement this with the TimerEventScheduler.
 }
+
 
 void MiniQ::setLed(byte red, byte green, byte blue) {
 	rgb_light.setPixelColor(0, rgb_light.Color(red, green, blue));
 	rgb_light.show();
 }
 
+
 void MiniQ::setSendIr(byte byteToSend, unsigned int durationMs) {
 	
 }
+
 
 void MiniQ::setIrModuleMode(irModuleMode_t irModuleMode) {
 	
