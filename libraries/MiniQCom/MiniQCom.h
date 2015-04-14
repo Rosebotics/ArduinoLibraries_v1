@@ -4,9 +4,7 @@
 #include "Arduino.h"
 
 typedef enum {
-  SENSOR_MASK_SET,
-  SENSOR_MASK_ADD,
-  SENSOR_MASK_REMOVE,
+  SENSOR_MASK_SET, SENSOR_MASK_ADD, SENSOR_MASK_REMOVE,
 } sensorMaskSetAddOrRemove_t;
 
 typedef enum {
@@ -17,11 +15,8 @@ typedef enum {
 } keyButtons_t;
 
 typedef enum {
-  IR_MODULE_MODE_OFF,
-  IR_MODULE_MODE_COUNT,
-  IR_MODULE_MODE_BYTE
+  IR_MODULE_MODE_OFF, IR_MODULE_MODE_COUNT, IR_MODULE_MODE_BYTE
 } irModuleMode_t;
-
 
 // Readings from the MiniQ first:
 // Note there are 32 possible sensor response messages.
@@ -69,7 +64,6 @@ typedef enum {
 #define MSG_LENGTH_KEY_BUTTONS					0 // DataBit9 and DataBit8 only
 #define MSG_LENGTH_BATTERY_VOLTAGE_TENTHS		1 // Units are in tenths of a volt
 
-
 // Special protocol bytes
 #define START_BYTE 			0x7E
 #define ESCAPE_BYTE 		0x7D
@@ -89,7 +83,6 @@ typedef enum {
 #define COMMAND_LED            			6
 #define COMMAND_SEND_IR        			7
 #define COMMAND_IR_MODULE_MODE			8
-
 
 // Bytes within commands
 // COMMAND_BYTE is byte 0 for all messages.
@@ -132,12 +125,12 @@ typedef enum {
 #define IR_MODULE_MODE					1 // see the irModuleMode_t enum
 #define IR_MODULE_MODE_COMMAND_LENGTH	2
 
-class MiniQCom
-{
-  public:
+class MiniQCom {
+public:
   MiniQCom();
   MiniQCom(boolean isMaster, byte miniQAddress);
-  void sendDrivePwm(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle);
+  void sendDrivePwm(boolean leftIsForward, boolean rightIsForward,
+      byte leftDutyCycle, byte rightDutyCycle);
   void sendDriveSpeedArc(int speedMmPerS, int arcMm);
   void sendSetSensorMask(unsigned long newSensorMask);
   void sendAddToSensorMask(unsigned long sensorMaskBitsToAdd);
@@ -146,45 +139,61 @@ class MiniQCom
   void sendLed(byte red, byte green, byte blue);
   void sendSendIr(byte byteToSend, unsigned int durationMs);
   void sendIrModuleMode(irModuleMode_t irModuleMode);
-  void registerDrivePwmCallback(void (* drivePwmCallback)(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle) );
-  void registerDriveSpeedArcCallback(void (* driveSpeedArcCallback)(int speedMmPerS, int arcMm) );
-  void registerSensorMaskCallback(void (* sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMaskParameter) );
-  void registerBuzzerToneCallback(void (* buzzerToneCallback)(unsigned int frequency, unsigned long durationMs) );
-  void registerLedCallback(void (* ledCallback)(byte red, byte green, byte blue) );
-  void registerSendIrCallback(void (* sendIrCallback)(byte byteToSend, unsigned int durationMs) );
-  void registerIrModuleMode(void (* irModuleMode)(irModuleMode_t irModuleMode) );
-    void handleRxByte(byte newRxByte);
+  void registerDrivePwmCallback(
+      void (*drivePwmCallback)(boolean leftIsForward,
+          boolean rightIsForward, byte leftDutyCycle,
+          byte rightDutyCycle));
+  void registerDriveSpeedArcCallback(
+      void (*driveSpeedArcCallback)(int speedMmPerS, int arcMm));
+  void registerSensorMaskCallback(
+      void (*sensorMaskCallback)(
+          sensorMaskSetAddOrRemove_t setAddOrRemove,
+          unsigned long sensorMaskParameter));
+  void registerBuzzerToneCallback(
+      void (*buzzerToneCallback)(unsigned int frequency,
+          unsigned long durationMs));
+  void registerLedCallback(
+      void (*ledCallback)(byte red, byte green, byte blue));
+  void registerSendIrCallback(
+      void (*sendIrCallback)(byte byteToSend, unsigned int durationMs));
+  void registerIrModuleMode(
+      void (*irModuleMode)(irModuleMode_t irModuleMode));
+  void handleRxByte(byte newRxByte);
 
-    // Sensor variables.
+  // Sensor variables.
   unsigned long sensorMask;
-    long leftMotorEncoder;
-    long rightMotorEncoder;
-    int farLeftIrLineSensor;
-    int midLeftIrLineSensor;
-    int centerIrLineSensor;
-    int midRightIrLineSensor;
-    int farRightIrLineSensor;
-    int photoDetectors;
-    byte irModuleCountForLeftIr;
-    byte irModuleCountForRightIr;
-    byte irModuleByte;
-    keyButtons_t keyButtons;
-    byte batterVoltageTenths;
-  private:
+  long leftMotorEncoder;
+  long rightMotorEncoder;
+  int farLeftIrLineSensor;
+  int midLeftIrLineSensor;
+  int centerIrLineSensor;
+  int midRightIrLineSensor;
+  int farRightIrLineSensor;
+  int photoDetectors;
+  byte irModuleCountForLeftIr;
+  byte irModuleCountForRightIr;
+  byte irModuleByte;
+  keyButtons_t keyButtons;
+  byte batterVoltageTenths;
+private:
+  void _init(boolean isMaster, byte miniQAddress);
   boolean _isMaster;
   byte _miniQAddress;
   byte _txMessageBuffer[MAX_MESSAGE_LENGTH];
   byte _rxMessageBuffer[MAX_MESSAGE_LENGTH];
   void _sendMessage(byte messageLength);
   void _sendByte(byte unescapedbyte);
-  void (* _drivePwmCallback)(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle);
-  void (* _driveSpeedArcCallback)(int speedMmPerS, int arcMm);
-  void (* _sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long sensorMaskParameter);
-  void (* _buzzerToneCallback)(unsigned int frequency, unsigned long durationMs);
-  void (* _ledCallback)(byte red, byte green, byte blue);
-  void (* _sendIrCallback)(byte byteToSend, unsigned int durationMs);
-  void (* _irModuleMode)(irModuleMode_t irModuleMode);
-    boolean _lastByteWasStartByte;
+  void (*_drivePwmCallback)(boolean leftIsForward, boolean rightIsForward,
+      byte leftDutyCycle, byte rightDutyCycle);
+  void (*_driveSpeedArcCallback)(int speedMmPerS, int arcMm);
+  void (*_sensorMaskCallback)(sensorMaskSetAddOrRemove_t setAddOrRemove,
+      unsigned long sensorMaskParameter);
+  void (*_buzzerToneCallback)(unsigned int frequency,
+      unsigned long durationMs);
+  void (*_ledCallback)(byte red, byte green, byte blue);
+  void (*_sendIrCallback)(byte byteToSend, unsigned int durationMs);
+  void (*_irModuleMode)(irModuleMode_t irModuleMode);
+  boolean _lastByteWasStartByte;
   boolean _lastByteWasEscapeByte;
   int _bytesRemainingInMessage;
   int _nextOpenByteInMessageBuffer;
