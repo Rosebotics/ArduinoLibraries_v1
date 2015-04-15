@@ -2,6 +2,8 @@
 drivers
 examples/0*
 examples/1*
+examples/ME435
+examples/ArduinoISP
 hardware
 java
 lib
