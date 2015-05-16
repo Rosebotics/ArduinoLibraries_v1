@@ -43,8 +43,8 @@ class MiniQ {
   void setSendIr(byte byteToSend, unsigned int durationMs);
   void setIrModuleMode(irModuleMode_t irModuleMode);
 //	void getEncoderValues(long* leftMotorEncoderPtr, long* rightMotorEncoderPtr);
-//	void getIrLineSensors(int* farLeftIrLineSensorPtr, int* midLeftIrLineSensorPtr,
-//	int* centerIrLineSensorPtr, int* midRightIrLineSensorPtr, int* farRightIrLineSensorPtr);
+  void getIrLineSensors(int* farLeftIrLineSensorPtr, int* midLeftIrLineSensorPtr,
+      int* centerIrLineSensorPtr, int* midRightIrLineSensorPtr, int* farRightIrLineSensorPtr);
   protected:
 };
 
