@@ -28,24 +28,23 @@
 #define PIN_BUZZER 16
 
 // Constants used in the wheel PWM commands.
-#define WHEEL_DIRECTION_FORWARD		0
-#define WHEEL_DIRECTION_REVERSE     1
-
+#define WHEEL_DIRECTION_FORWARD	0
+#define WHEEL_DIRECTION_REVERSE 1
 
 class MiniQ {
   public:
-	MiniQ();
-    void begin(void);
-	void setDrivePwm(boolean leftIsForward, boolean rightIsForward, byte leftDutyCycle, byte rightDutyCycle);
-	void setDriveSpeedArc(int speedMmPerS, int arcMm);
-	void setSensorMask(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long newSensorMask);
-	void setBuzzerTone(unsigned int frequency, unsigned long durationMs);
-	void setLed(byte red, byte green, byte blue);
-	void setSendIr(byte byteToSend, unsigned int durationMs);
-	void setIrModuleMode(irModuleMode_t irModuleMode);
+  MiniQ();
+  void begin(void);
+  void setDrivePwm(byte leftWheelDirection, byte rightWheelDirection, byte leftDutyCycle, byte rightDutyCycle);
+  void setDriveSpeedArc(int speedMmPerS, int arcMm);
+  void setSensorMask(sensorMaskSetAddOrRemove_t setAddOrRemove, unsigned long newSensorMask);
+  void setBuzzerTone(unsigned int frequency, unsigned long durationMs);
+  void setLed(byte red, byte green, byte blue);
+  void setSendIr(byte byteToSend, unsigned int durationMs);
+  void setIrModuleMode(irModuleMode_t irModuleMode);
 //	void getEncoderValues(long* leftMotorEncoderPtr, long* rightMotorEncoderPtr);
-//	void getIrLineSensors(int* farLeftIrLineSensorPtr, int* midLeftIrLineSensorPtr, 
-//			int* centerIrLineSensorPtr, int* midRightIrLineSensorPtr, int* farRightIrLineSensorPtr);
+//	void getIrLineSensors(int* farLeftIrLineSensorPtr, int* midLeftIrLineSensorPtr,
+//	int* centerIrLineSensorPtr, int* midRightIrLineSensorPtr, int* farRightIrLineSensorPtr);
   protected:
 };
 
