@@ -1,0 +1,33 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+EEPROM
+Esplora
+Ethernet
+Firmata
+GolfBallStand
+GSM
+LiquidCrystal
+Morse
+Robot_Control
+Robot_Motor
+SD
+Servo
+SoftwareSerial
+SPI
+Stepper
+TFT
+WiFi
+Wire
+AsyncGolfBallStand

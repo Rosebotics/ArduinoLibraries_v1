@@ -2,16 +2,21 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-MiniQ	KEYWORD1
+TimerEventScheduler	KEYWORD1
+
+TimerEvent	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-setDrivePwm	KEYWORD2
+
+addTimerEvent	KEYWORD2
+
+timerEventCallback	KEYWORD2
+getTimerTicksRemaining	KEYWORD2
+setTimerTicksRemaining	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
-
-
